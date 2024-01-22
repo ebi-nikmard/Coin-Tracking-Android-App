@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Coin</string>
+    <string name="loading">Loading…</string>
+
+    <string name="market_cap">Market cap</string>
+    <string name="total_supply">Total supply</string>
+    <string name="volume">Volume</string>
+    <string name="price_btc">Price(BTC)</string>
+</resources>
