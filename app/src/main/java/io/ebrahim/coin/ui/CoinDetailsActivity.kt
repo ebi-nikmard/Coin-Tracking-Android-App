@@ -13,8 +13,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
-import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
@@ -28,8 +28,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * Activity displaying detailed information about a specific coin, including a price chart.
+ */
 class CoinDetailsActivity : AppCompatActivity() {
 
+    // Variables to store coin details
     private lateinit var coinId: String
     private lateinit var coinSymbol: String
     private lateinit var coinIcon: String
@@ -42,9 +46,15 @@ class CoinDetailsActivity : AppCompatActivity() {
     private lateinit var priceChange1h: String
     private lateinit var marketCap: String
     private lateinit var totalSupply: String
+
+    // ViewModel for handling data
     private lateinit var coinDetailsViewModel: CoinDetailsViewModel
 
+    // UI elements
     private lateinit var coinAvatarUI: ImageView
+    private lateinit var coinTwitterUI: ImageView
+    private lateinit var coinWebUI: ImageView
+    private lateinit var coinRedditUI: ImageView
     private lateinit var coinNameUI: TextView
     private lateinit var coinSymbolUI: TextView
     private lateinit var coinPriceUI: TextView
@@ -53,21 +63,26 @@ class CoinDetailsActivity : AppCompatActivity() {
     private lateinit var coinVolumeValueUI: TextView
     private lateinit var marketCapUI: TextView
     private lateinit var totalSupplyUI: TextView
-    private lateinit var coinTwitterUI: ImageView
-    private lateinit var coinWebUI: ImageView
-    private lateinit var coinRedditUI: ImageView
     private lateinit var lineChart: LineChart
     private lateinit var lineChartProgressBar: ProgressBar
 
+    /**
+     * Called when the activity is starting.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_coin_details)
 
+        // Initialize UI components and retrieve coin details from the intent
         setView()
 
+        // Set up UI actions and ViewModel
         setAction()
     }
 
+    /**
+     * Initializes UI components and retrieves coin details from the intent.
+     */
     private fun setView(){
         coinId = intent.getStringExtra("coinId") ?: ""
         coinSymbol = intent.getStringExtra("coinSymbol") ?: ""
@@ -82,6 +97,7 @@ class CoinDetailsActivity : AppCompatActivity() {
         marketCap = intent.getStringExtra("marketCap") ?: ""
         totalSupply = intent.getStringExtra("totalSupply") ?: ""
 
+        // Initialize UI elements
         coinAvatarUI = findViewById(R.id.coinAvatar)
         coinTwitterUI = findViewById(R.id.coinTwitter)
         coinWebUI = findViewById(R.id.coinWeb)
@@ -98,9 +114,14 @@ class CoinDetailsActivity : AppCompatActivity() {
         coinVolumeValueUI = findViewById(R.id.coinVolumeValue)
     }
 
+    /**
+     * Sets up UI actions, loads images, and initializes the ViewModel.
+     */
     private fun setAction(){
+        // Load coin images using Picasso
         Picasso.get().load(coinIcon).into(coinAvatarUI)
 
+        // Set coin details to the corresponding UI elements
         coinNameUI.text = coinId
         coinSymbolUI.text = coinSymbol
         coinPriceUI.text = "$ $coinPrice"
@@ -110,6 +131,7 @@ class CoinDetailsActivity : AppCompatActivity() {
         totalSupplyUI.text = totalSupply
         coinVolumeValueUI.text = coinVolume
 
+        // Customize text color based on price change
         if (priceChange1h.toDouble() > 0) {
             coinChangeUI.setTextColor(getColor(R.color.green))
             coinPriceUI.setTextColor(getColor(R.color.green))
@@ -120,25 +142,30 @@ class CoinDetailsActivity : AppCompatActivity() {
             coinPriceUI.setTextColor(getColor(R.color.red))
         }
 
+        // Set click listeners to open links
         coinTwitterUI.setOnClickListener { openLink(coinTwitter) }
-
         coinWebUI.setOnClickListener { openLink(coinWeb) }
-
         coinRedditUI.setOnClickListener { openLink(coinReddit) }
 
+        // Set up ViewModel and fetch chart data
         val repository = CoinRepository((application as Core).coinApiService)
         val viewModelFactory = CoinDetailsViewModelFactory(repository)
         coinDetailsViewModel = ViewModelProvider(this, viewModelFactory).get(CoinDetailsViewModel::class.java)
 
+        // Observe LiveData changes and update the line chart
         coinDetailsViewModel.chartData.observe(this) { chartData ->
             lineChartProgressBar.visibility = View.GONE
             lineChart.visibility = View.VISIBLE
             updateChart(chartData)
         }
 
+        // Fetch 1-week chart data for the selected coin
         coinDetailsViewModel.fetchChartData(coinId, "1w")
     }
 
+    /**
+     * Updates the line chart with the provided chart data.
+     */
     private fun updateChart(chartData: List<List<Any>>) {
         try {
             if (chartData.isNotEmpty()) {
@@ -177,23 +204,22 @@ class CoinDetailsActivity : AppCompatActivity() {
                     }
                 }
 
-                // Inside your activity or fragment
-                val priceTextView: TextView = findViewById(R.id.priceTextView)
-
+                // Set up OnChartValueSelectedListener to display price on selection
                 lineChart.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
                     override fun onValueSelected(e: Entry?, h: Highlight?) {
                         // Display the price of the selected data point above the chart
                         val price = e?.y ?: 0.0
+                        val priceTextView: TextView = findViewById(R.id.priceTextView)
                         priceTextView.text = "Price: $ $price"
                         priceTextView.visibility = View.VISIBLE
                     }
 
                     override fun onNothingSelected() {
                         // Hide the TextView when nothing is selected (optional)
+                        val priceTextView: TextView = findViewById(R.id.priceTextView)
                         priceTextView.visibility = View.INVISIBLE
                     }
                 })
-
 
                 // Customize the chart legend
                 val legend = lineChart.legend
@@ -213,6 +239,9 @@ class CoinDetailsActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Opens the provided link in a web browser.
+     */
     private fun openLink(link: String) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
         startActivity(intent)

@@ -15,14 +15,23 @@ import io.ebrahim.coin.model.Coin
 import java.math.BigDecimal
 import java.math.RoundingMode
 
+/**
+ * RecyclerView Adapter for displaying a list of coins.
+ */
 class CoinAdapter(private val context: Context, private var coins: List<Coin>) :
     RecyclerView.Adapter<CoinAdapter.ViewHolder>() {
 
+    /**
+     * Creates and returns a ViewHolder for the item view.
+     */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_coin, parent, false)
         return ViewHolder(view)
     }
 
+    /**
+     * Binds the data to the views of the item view.
+     */
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val coin = coins[position]
 
@@ -36,12 +45,15 @@ class CoinAdapter(private val context: Context, private var coins: List<Coin>) :
         holder.coinPrice.text = "$ " + BigDecimal(coin.price).setScale(2, RoundingMode.HALF_UP).toString()
         holder.coinChange.text = coin.priceChange1h.toString() + " %"
 
+        // Set color based on price change
         if (coin.priceChange1h > 0) holder.coinChange.setTextColor(context.getColor(R.color.green))
         if (coin.priceChange1h < 0) holder.coinChange.setTextColor(context.getColor(R.color.red))
 
-
+        // Set OnClickListener for opening CoinDetailsActivity
         holder.itemView.setOnClickListener {
             val intent = Intent(context, CoinDetailsActivity::class.java)
+
+            // Pass relevant coin details to the CoinDetailsActivity
             intent.putExtra("coinId", coin.id)
             intent.putExtra("coinSymbol", coin.symbol)
             intent.putExtra("coinIcon", coin.icon)
@@ -54,19 +66,29 @@ class CoinAdapter(private val context: Context, private var coins: List<Coin>) :
             intent.putExtra("coinVolume", BigDecimal(coin.volume).setScale(2, RoundingMode.HALF_UP).toString())
             intent.putExtra("marketCap", BigDecimal(coin.marketCap).setScale(2, RoundingMode.HALF_UP).toString())
             intent.putExtra("totalSupply", BigDecimal(coin.totalSupply).setScale(2, RoundingMode.HALF_UP).toString())
+
             context.startActivity(intent)
         }
     }
 
+    /**
+     * Returns the total number of items in the data set held by the adapter.
+     */
     override fun getItemCount(): Int {
         return coins.size
     }
 
+    /**
+     * Updates the list of coins and notifies the adapter about the data change.
+     */
     fun submitList(newList: List<Coin>) {
         coins = newList
         notifyDataSetChanged()
     }
 
+    /**
+     * ViewHolder class for holding the views of each item in the RecyclerView.
+     */
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val coinRank: TextView = itemView.findViewById(R.id.coinRank)
         val coinAvatar: ImageView = itemView.findViewById(R.id.coinAvatar)

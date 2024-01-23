@@ -1,5 +1,7 @@
 package io.ebrahim.coin.model
-
+/**
+ * Data class representing information about a crypto coins.
+ */
 data class Coin(
     val id: String,
     val icon: String,
