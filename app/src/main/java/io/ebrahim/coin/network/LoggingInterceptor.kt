@@ -9,9 +9,6 @@ class LoggingInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request: Request = chain.request()
         val url = request.url()
-
-        Log.i("ebrahimm", "" + url)
-
         return chain.proceed(request)
     }
 }

@@ -2,7 +2,6 @@ package io.ebrahim.coin.ui
 
 import android.content.Intent
 import android.net.Uri
-import android.opengl.Visibility
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -10,13 +9,15 @@ import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
-import com.github.mikephil.charting.interfaces.datasets.ILineDataSet
+import com.github.mikephil.charting.formatter.ValueFormatter
+import com.github.mikephil.charting.highlight.Highlight
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.squareup.picasso.Picasso
 import io.ebrahim.coin.Core
 import io.ebrahim.coin.R
@@ -25,6 +26,7 @@ import io.ebrahim.coin.ui.viewmodel.CoinDetailsViewModel
 import io.ebrahim.coin.ui.viewmodel.CoinDetailsViewModelFactory
 import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 class CoinDetailsActivity : AppCompatActivity() {
 
@@ -65,7 +67,6 @@ class CoinDetailsActivity : AppCompatActivity() {
 
         setAction()
     }
-
 
     private fun setView(){
         coinId = intent.getStringExtra("coinId") ?: ""
@@ -147,28 +148,68 @@ class CoinDetailsActivity : AppCompatActivity() {
                     val timestamp = dataPoint[0].toString().toDouble().toLong()
                     val price = dataPoint[1] as Double
 
-                    val sdf = SimpleDateFormat("MM/dd/yyyy")
-                    val netDate = Date(timestamp * 1000)
-                    Log.i("ebrahimm6", "" + sdf.format(netDate))
-
                     // Add data points to the chart
                     entries.add(Entry(timestamp.toFloat(), price.toFloat()))
                 }
 
+                // Customize line data set
                 val dataSet = LineDataSet(entries, "Price")
-                val dataSets: MutableList<ILineDataSet> = mutableListOf()
-                dataSets.add(dataSet)
+                dataSet.color = getColor(R.color.orange) // Set line color
+                dataSet.setDrawCircles(false) // Disable drawing circles at data points
+                dataSet.setDrawValues(false) // Disable drawing values on data points
 
-                val lineData = LineData(dataSets)
-
-                lineChart.data = lineData
+                // Customize chart appearance
                 lineChart.xAxis.textColor = getColor(R.color.green)
+                lineChart.xAxis.setDrawGridLines(false)
+                lineChart.axisLeft.textColor = getColor(R.color.green)
+                lineChart.axisLeft.setDrawGridLines(true)
+                lineChart.axisRight.textColor = getColor(R.color.green)
+                lineChart.axisRight.setDrawGridLines(false)
+
+                lineChart.description.text = ""
+
+                // Set X-axis value formatter for better date display
+                lineChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
+                lineChart.xAxis.valueFormatter = object : ValueFormatter() {
+                    override fun getFormattedValue(value: Float): String {
+                        val date = Date(value.toLong() * 1000)
+                        return SimpleDateFormat("MMM dd", Locale.getDefault()).format(date)
+                    }
+                }
+
+                // Inside your activity or fragment
+                val priceTextView: TextView = findViewById(R.id.priceTextView)
+
+                lineChart.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
+                    override fun onValueSelected(e: Entry?, h: Highlight?) {
+                        // Display the price of the selected data point above the chart
+                        val price = e?.y ?: 0.0
+                        priceTextView.text = "Price: $ $price"
+                        priceTextView.visibility = View.VISIBLE
+                    }
+
+                    override fun onNothingSelected() {
+                        // Hide the TextView when nothing is selected (optional)
+                        priceTextView.visibility = View.INVISIBLE
+                    }
+                })
+
+
+                // Customize the chart legend
+                val legend = lineChart.legend
+                legend.textColor = getColor(R.color.green)
+
+                // Create line data and set it to the chart
+                val lineData = LineData(dataSet)
+                lineChart.data = lineData
+
+                // Invalidate the chart to refresh the appearance
                 lineChart.invalidate()
             } else {
                 Log.d("CoinDetailsActivity", "No chart data available")
             }
-        }catch (e: Exception) {
-            Log.i("ebrahimm4", e.toString())
+        } catch (e: Exception) {
+            Log.e("CoinDetailsActivity", "Error updating chart", e)
         }
     }
 

@@ -50,7 +50,7 @@ class CoinAdapter(private val context: Context, private var coins: List<Coin>) :
             intent.putExtra("twitterUrl", coin.twitterUrl)
             intent.putExtra("coinPrice", BigDecimal(coin.price).setScale(2, RoundingMode.HALF_UP).toString())
             intent.putExtra("priceChange1h", coin.priceChange1h.toString())
-            intent.putExtra("coinPriceBTC", BigDecimal(coin.priceBtc).setScale(5, RoundingMode.HALF_UP).toString())
+            intent.putExtra("coinPriceBTC", BigDecimal(coin.priceBtc).setScale(7, RoundingMode.HALF_UP).toString())
             intent.putExtra("coinVolume", BigDecimal(coin.volume).setScale(2, RoundingMode.HALF_UP).toString())
             intent.putExtra("marketCap", BigDecimal(coin.marketCap).setScale(2, RoundingMode.HALF_UP).toString())
             intent.putExtra("totalSupply", BigDecimal(coin.totalSupply).setScale(2, RoundingMode.HALF_UP).toString())
